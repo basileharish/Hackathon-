@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Basile - AI Support Agent</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #6a11cb;
+      --secondary-color: #2575fc;
+      --accent-color: #ff6b6b;
+      --dark-color: #1e293b;
+      --light-color: #f8fafc;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --info-color: #3b82f6;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      border: none;
+      padding: 12px 24px;
+      transition: all 0.3s;
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      background: linear-gradient(to right, var(--secondary-color), var(--primary-color));
+    }
+
+    .chat-container {
+      height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e9ecef;
+      border-radius: 10px;
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBvcGFjaXR5PSIwLjA1Ij48cGF0dGVybiBpZD0icGF0dGVybi1iYXNlIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IGlkPSJwYXR0ZXJuLWJhY2tncm91bmQiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmZmZmZmYiPjwvcmVjdD48cGF0aCBkPSJNIDAgMCBMIDAgNDAgTCA0MCA0MCBMIDQwIDAgTCAwIDAgTSAyMCAyMCBMIDIwIDQwIE0gMCAyMCBMIDIwIDIwIE0gNDAgMjAgTCAyMCAyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD48L3BhdHRlcm4+PC9zdmc+');
+    }
+
+    .message {
+      padding: 12px 18px;
+      border-radius: 18px;
+      margin-bottom: 12px;
+      max-width: 80%;
+      animation: fadeIn 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      color: white;
+      margin-left: auto;
+      border-top-right-radius: 5px;
+    }
+
+    .bot-message {
+      background: #f8f9fa;
+      color: #333;
+      margin-right: auto;
+      border: 1px solid #e0e0e0;
+      border-top-left-radius: 5px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      padding: 12px 18px;
+      background: #f1f1f1;
+      border-radius: 18px;
+      width: fit-content;
+      margin-bottom: 12px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #666;
+      border-radius: 50%;
+      margin: 0 4px;
+      animation: typing 1.4s infinite ease-in-out;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .sentiment-indicator {
+      height: 6px;
+      background: #eee;
+      border-radius: 5px;
+      margin-top: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sentiment-bar {
+      height: 100%;
+      transition: width 0.5s, background-color 0.5s;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .whatsapp-btn {
+      background: #25D366;
+      color: white;
+      font-weight: 600;
+    }
+
+    .call-btn {
+      background: var(--success-color);
+      color: white;
+      font-weight: 600;
+    }
+
+    .progress-container {
+      margin-top: 15px;
+      display: none;
+    }
+
+    .customer-info {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .assistant-badge {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: all 0.3s;
+    }
+
+    .assistant-badge:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .file-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .file-preview-item {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+
+    .file-preview-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .file-preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-file {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .remove-file:hover {
+      background: rgba(0,0,0,0.8);
+    }
+
+    .voice-recorder {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .voice-visualizer {
+      height: 20px;
+      background: #f1f1f1;
+      border-radius: 10px;
+      flex-grow: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .voice-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      transition: width 0.1s;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .form-control, .form-select {
+      border-radius: 8px;
+      padding: 10px 15px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
+    }
+
+    h2 {
+      color: var(--primary-color);
+      font-weight: 700;
+      margin-bottom: 25px;
+      position: relative;
+      display: inline-block;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 50px;
+      height: 4px;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      border-radius: 2px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    /* Floating animation for assistant badge */
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .assistant-badge {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Pulse effect for buttons */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(106, 17, 203, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(106, 17, 203, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(106, 17, 203, 0); }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, var(--primary-color), var(--secondary-color));
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-color);
+    }
+
+    /* Ticket status styles */
+    .ticket-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-new {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .status-in-progress {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-resolved {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .status-escalated {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Department tags */
+    .department-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background-color: #e0e7ff;
+      color: #4338ca;
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+
+    /* Ticket list styles */
+    .ticket-item {
+      padding: 15px;
+      border-radius: 10px;
+      background: white;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .ticket-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .ticket-priority {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .priority-high {
+      background-color: #ef4444;
+    }
+
+    .priority-medium {
+      background-color: #f59e0b;
+    }
+
+    .priority-low {
+      background-color: #10b981;
+    }
+
+    /* Knowledge base styles */
+    .knowledge-card {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+      margin-bottom: 20px;
+      background: white;
+    }
+
+    .knowledge-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .knowledge-card-header {
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 15px;
+      font-weight: 600;
+    }
+
+    .knowledge-card-body {
+      padding: 15px;
+    }
+
+    /* Tab styles */
+    .nav-tabs .nav-link {
+      border: none;
+      color: #64748b;
+      font-weight: 600;
+      padding: 10px 20px;
+    }
+
+    .nav-tabs .nav-link.active {
+      color: var(--primary-color);
+      border-bottom: 3px solid var(--primary-color);
+      background: transparent;
+    }
+
+    /* Dashboard stats */
+    .stat-card {
+      border-radius: 10px;
+      padding: 20px;
+      color: white;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-card i {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .stat-card-tickets {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+    }
+
+    .stat-card-resolved {
+      background: linear-gradient(to right, #10b981, #3b82f6);
+    }
+
+    .stat-card-pending {
+      background: linear-gradient(to right, #f59e0b, #ef4444);
+    }
+
+    .stat-card-escalated {
+      background: linear-gradient(to right, #8b5cf6, #ec4899);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      .chat-container {
+        height: 300px;
+      }
+      .message {
+        max-width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2 class="text-center mb-4">
+    <i class="fas fa-robot me-2 gradient-text"></i> <span class="gradient-text">Basile - AI Support Agent</span>
+  </h2>
+
+  <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab">New Request</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">My Tickets</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="knowledge-tab" data-bs-toggle="tab" data-bs-target="#knowledge" type="button" role="tab">Knowledge Base</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">Dashboard</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="myTabContent">
+    <!-- New Request Tab -->
+    <div class="tab-pane fade show active" id="home" role="tabpanel">
+      <div class="customer-info mb-4">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Your Name</label>
+            <input type="text" id="customer-name" class="form-control" placeholder="Enter your name">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="customer-email" class="form-control" placeholder="your@email.com">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="customer-phone" class="form-control" placeholder="+91 98765 43210">
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Priority</label>
+            <select id="ticket-priority" class="form-select">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold">Describe your issue precisely</label>
+        <textarea id="message" class="form-control" rows="4" placeholder="Be specific about your product and issue..." oninput="analyzeSentiment()"></textarea>
+        <div class="sentiment-indicator mt-2">
+          <div id="sentiment-bar" class="sentiment-bar"></div>
+        </div>
+        <div id="issue-category" class="mt-2"></div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Product Category</label>
+          <select id="product-category" class="form-select">
+            <option value="">Select category</option>
+            <option value="electronics">Electronics</option>
+            <option value="appliance">Home Appliances</option>
+            <option value="furniture">Furniture</option>
+            <option value="clothing">Clothing</option>
+            <option value="software">Software</option>
+            <option value="service">Service</option>
+          </select>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Product Model (if known)</label>
+          <input type="text" id="product-model" class="form-control" placeholder="e.g. XYZ-1234">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold">Upload Product Images</label>
+        <input type="file" id="product-images" class="form-control" accept="image/*" multiple onchange="handleImageUpload()">
+        <div class="file-preview" id="image-preview"></div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold">Record Voice Message</label>
+        <div class="voice-recorder">
+          <button id="record-button" class="btn btn-outline-secondary" onclick="toggleRecording()">
+            <i class="fas fa-microphone"></i> Record
+          </button>
+          <div class="voice-visualizer">
+            <div id="voice-bar" class="voice-bar"></div>
+          </div>
+          <button class="btn btn-outline-secondary" onclick="document.getElementById('voice-upload').click()">
+            <i class="fas fa-upload"></i> Upload
+          </button>
+          <input type="file" id="voice-upload" class="d-none" accept="audio/*" onchange="handleAudioUpload()">
+        </div>
+        <div class="file-preview" id="audio-preview"></div>
+      </div>
+
+      <div class="d-flex gap-2 mb-4 flex-wrap">
+        <button class="btn btn-primary flex-grow-1 pulse" onclick="submitRequest()">
+          <i class="fas fa-paper-plane me-2"></i> Submit Request
+        </button>
+        <button class="btn call-btn" onclick="callAgent()">
+          <i class="fas fa-phone me-2"></i> Call Agent Now
+        </button>
+        <button class="btn whatsapp-btn" onclick="sendWhatsApp()">
+          <i class="fab fa-whatsapp me-2"></i> WhatsApp Support
+        </button>
+      </div>
+
+      <div class="progress-container" id="progress-container">
+        <div class="progress">
+          <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+        </div>
+        <p class="text-center mt-2 mb-0" id="progress-text">Processing your request...</p>
+      </div>
+
+      <div class="chat-container" id="chat-container">
+        <div class="bot-message message">
+          Hello! I'm Basile, your AI support agent. How can I help you today?
+        </div>
+        <div class="bot-message message">
+          Our toll-free customer care number is: <strong>+91 89046 33917</strong> (available 24/7)
+        </div>
+      </div>
+
+      <div class="input-group mt-3">
+        <input type="text" id="chat-input" class="form-control" placeholder="Ask me anything...">
+        <button class="btn btn-primary" onclick="sendChatMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- My Tickets Tab -->
+    <div class="tab-pane fade" id="tickets" role="tabpanel">
+      <h4 class="mb-4">My Support Tickets</h4>
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input type="text" id="ticket-search" class="form-control" placeholder="Search tickets...">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <select id="ticket-filter" class="form-select">
+            <option value="all">All Tickets</option>
+            <option value="new">New</option>
+            <option value="in-progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+      </div>
+      
+      <div id="tickets-list">
+        <!-- Tickets will be loaded here dynamically -->
+      </div>
+    </div>
+
+    <!-- Knowledge Base Tab -->
+    <div class="tab-pane fade" id="knowledge" role="tabpanel">
+      <h4 class="mb-4">Knowledge Base</h4>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="knowledge-card">
+            <div class="knowledge-card-header">
+              <i class="fas fa-laptop me-2"></i> Electronics
+            </div>
+            <div class="knowledge-card-body">
+              <h5>Common Issues</h5>
+              <ul class="list-unstyled">
+                <li><a href="#" class="text-decoration-none">Device not turning on</a></li>
+                <li><a href="#" class="text-decoration-none">Connectivity problems</a></li>
+                <li><a href="#" class="text-decoration-none">Battery draining fast</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="knowledge-card">
+            <div class="knowledge-card-header">
+              <i class="fas fa-home me-2"></i> Home Appliances
+            </div>
+            <div class="knowledge-card-body">
+              <h5>Common Issues</h5>
+              <ul class="list-unstyled">
+                <li><a href="#" class="text-decoration-none">Not cooling/heating</a></li>
+                <li><a href="#" class="text-decoration-none">Strange noises</a></li>
+                <li><a href="#" class="text-decoration-none">Water leakage</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="knowledge-card">
+            <div class="knowledge-card-header">
+              <i class="fas fa-couch me-2"></i> Furniture
+            </div>
+            <div class="knowledge-card-body">
+              <h5>Common Issues</h5>
+              <ul class="list-unstyled">
+                <li><a href="#" class="text-decoration-none">Assembly problems</a></li>
+                <li><a href="#" class="text-decoration-none">Damaged parts</a></li>
+                <li><a href="#" class="text-decoration-none">Missing components</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <button class="btn btn-primary">View Full Knowledge Base</button>
+      </div>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div class="tab-pane fade" id="stats" role="tabpanel">
+      <h4 class="mb-4">Support Dashboard</h4>
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stat-card stat-card-tickets">
+            <i class="fas fa-ticket-alt"></i>
+            <h3 id="total-tickets">0</h3>
+            <p>Total Tickets</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card stat-card-resolved">
+            <i class="fas fa-check-circle"></i>
+            <h3 id="resolved-tickets">0</h3>
+            <p>Resolved</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card stat-card-pending">
+            <i class="fas fa-clock"></i>
+            <h3 id="pending-tickets">0</h3>
+            <p>Pending</p>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card stat-card-escalated">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3 id="escalated-tickets">0</h3>
+            <p>Escalated</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header bg-white">
+              <h5>Ticket Status</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="statusChart" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header bg-white">
+              <h5>Department Distribution</h5>
+            </div>
+            <div class="card-body">
+              <canvas id="departmentChart" height="250"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5>Recent Activity</h5>
+        </div>
+        <div class="card-body">
+          <div id="recent-activity">
+            <!-- Activity will be loaded here dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="assistant-badge" onclick="toggleChat()">
+  <i class="fas fa-robot"></i>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Global variables
+  let currentRequest = {};
+  let chatHistory = [];
+  let mediaRecorder;
+  let audioChunks = [];
+  let isRecording = false;
+  let voiceVisualizerInterval;
+  let selectedCategory = '';
+  let selectedModel = '';
+  let supportTickets = [];
+  let statusChart, departmentChart;
+
+  // Indian support phone number
+  const SUPPORT_PHONE_NUMBER = '+918904633917';
+  const SUPPORT_PHONE_DISPLAY = '+91 89046 33917';
+  const SUPPORT_WHATSAPP_NUMBER = '918904633917';
+
+  // Initialize with sample tickets if none exist
+  document.addEventListener('DOMContentLoaded', function() {
+    // Load tickets from localStorage if available
+    const savedTickets = localStorage.getItem('supportTickets');
+    if (savedTickets) {
+      supportTickets = JSON.parse(savedTickets);
+    } else {
+      // Create sample tickets
+      supportTickets = [
+        {
+          id: generateSupportId(),
+          name: "John Doe",
+          email: "john.doe@example.com",
+          phone: "+919876543210",
+          category: "electronics",
+          model: "XYZ-1234",
+          issue: "Device not turning on",
+          priority: "high",
+          status: "in-progress",
+          department: "technical",
+          timestamp: new Date().toISOString(),
+          sentiment: 30,
+          predictedCategory: "hardware-issue"
+        },
+        {
+          id: generateSupportId(),
+          name: "Jane Smith",
+          email: "jane.smith@example.com",
+          phone: "+919876543211",
+          category: "appliance",
+          model: "ABC-5678",
+          issue: "Not cooling properly",
+          priority: "medium",
+          status: "new",
+          department: "appliance-support",
+          timestamp: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+          sentiment: 45,
+          predictedCategory: "performance-issue"
+        },
+        {
+          id: generateSupportId(),
+          name: "Robert Johnson",
+          email: "robert.j@example.com",
+          phone: "+919876543212",
+          category: "software",
+          model: "v2.5.1",
+          issue: "Error when saving files",
+          priority: "medium",
+          status: "resolved",
+          department: "software-support",
+          timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+          sentiment: 60,
+          predictedCategory: "software-bug"
+        }
+      ];
+      localStorage.setItem('supportTickets', JSON.stringify(supportTickets));
+    }
+    
+    // Load tickets list
+    loadTickets();
+    
+    // Initialize charts
+    initializeCharts();
+    
+    // Load dashboard stats
+    updateDashboardStats();
+    
+    // Initialize tab functionality
+    const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabEls.forEach(tabEl => {
+      tabEl.addEventListener('shown.bs.tab', function (event) {
+        if (event.target.id === 'stats-tab') {
+          updateDashboardStats();
+        } else if (event.target.id === 'tickets-tab') {
+          loadTickets();
+        }
+      })
+    });
+  });
+
+  // Initialize charts
+  function initializeCharts() {
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    statusChart = new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['New', 'In Progress', 'Resolved', 'Escalated'],
+        datasets: [{
+          data: [0, 0, 0, 0],
+          backgroundColor: [
+            '#3b82f6',
+            '#f59e0b',
+            '#10b981',
+            '#ef4444'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          }
+        }
+      }
+    });
+
+    const deptCtx = document.getElementById('departmentChart').getContext('2d');
+    departmentChart = new Chart(deptCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Technical', 'Appliance', 'Software', 'Furniture'],
+        datasets: [{
+          label: 'Tickets by Department',
+          data: [0, 0, 0, 0],
+          backgroundColor: [
+            'rgba(106, 17, 203, 0.7)',
+            'rgba(37, 117, 252, 0.7)',
+            'rgba(16, 185, 129, 0.7)',
+            'rgba(239, 68, 68, 0.7)'
+          ],
+          borderColor: [
+            'rgba(106, 17, 203, 1)',
+            'rgba(37, 117, 252, 1)',
+            'rgba(16, 185, 129, 1)',
+            'rgba(239, 68, 68, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  // Update dashboard stats
+  function updateDashboardStats() {
+    // Calculate stats
+    const total = supportTickets.length;
+    const resolved = supportTickets.filter(t => t.status === 'resolved').length;
+    const pending = supportTickets.filter(t => t.status === 'new' || t.status === 'in-progress').length;
+    const escalated = supportTickets.filter(t => t.status === 'escalated').length;
+    
+    // Update numbers
+    document.getElementById('total-tickets').textContent = total;
+    document.getElementById('resolved-tickets').textContent = resolved;
+    document.getElementById('pending-tickets').textContent = pending;
+    document.getElementById('escalated-tickets').textContent = escalated;
+    
+    // Update status chart
+    const newTickets = supportTickets.filter(t => t.status === 'new').length;
+    const inProgress = supportTickets.filter(t => t.status === 'in-progress').length;
+    
+    statusChart.data.datasets[0].data = [newTickets, inProgress, resolved, escalated];
+    statusChart.update();
+    
+    // Update department chart
+    const technical = supportTickets.filter(t => t.department === 'technical').length;
+    const appliance = supportTickets.filter(t => t.department === 'appliance-support').length;
+    const software = supportTickets.filter(t => t.department === 'software-support').length;
+    const furniture = supportTickets.filter(t => t.department === 'furniture-support').length;
+    
+    departmentChart.data.datasets[0].data = [technical, appliance, software, furniture];
+    departmentChart.update();
+    
+    // Update recent activity
+    updateRecentActivity();
+  }
+
+  function updateRecentActivity() {
+    const recentActivity = document.getElementById('recent-activity');
+    recentActivity.innerHTML = '';
+    
+    // Sort tickets by timestamp (newest first)
+    const sortedTickets = [...supportTickets].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Show last 5 tickets
+    sortedTickets.slice(0, 5).forEach(ticket => {
+      const activityItem = document.createElement('div');
+      activityItem.className = 'd-flex mb-3';
+      
+      const icon = document.createElement('div');
+      icon.className = 'flex-shrink-0 me-3';
+      icon.innerHTML = '<i class="fas fa-ticket-alt text-primary"></i>';
+      
+      const content = document.createElement('div');
+      content.className = 'flex-grow-1';
+      
+      const statusClass = getStatusClass(ticket.status);
+      const priorityClass = getPriorityClass(ticket.priority);
+      
+      content.innerHTML = `
+        <div class="d-flex justify-content-between">
+          <h6 class="mb-1">Ticket #${ticket.id}</h6>
+          <small class="text-muted">${formatDate(ticket.timestamp)}</small>
+        </div>
+        <p class="mb-1">${ticket.issue}</p>
+        <div class="d-flex">
+          <span class="${statusClass} me-2">${formatStatus(ticket.status)}</span>
+          <span class="${priorityClass}">${formatPriority(ticket.priority)}</span>
+        </div>
+      `;
+      
+      activityItem.appendChild(icon);
+      activityItem.appendChild(content);
+      recentActivity.appendChild(activityItem);
+    });
+  }
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  }
+
+  function formatStatus(status) {
+    const statusMap = {
+      'new': 'New',
+      'in-progress': 'In Progress',
+      'resolved': 'Resolved',
+      'escalated': 'Escalated'
+    };
+    return statusMap[status] || status;
+  }
+
+  function formatPriority(priority) {
+    return priority.charAt(0).toUpperCase() + priority.slice(1);
+  }
+
+  function getStatusClass(status) {
+    const classMap = {
+      'new': 'status-new',
+      'in-progress': 'status-in-progress',
+      'resolved': 'status-resolved',
+      'escalated': 'status-escalated'
+    };
+    return classMap[status] || '';
+  }
+
+  function getPriorityClass(priority) {
+    const classMap = {
+      'low': 'priority-low',
+      'medium': 'priority-medium',
+      'high': 'priority-high'
+    };
+    return classMap[priority] || '';
+  }
+
+  // Load tickets into the tickets list
+  function loadTickets() {
+    const ticketsList = document.getElementById('tickets-list');
+    ticketsList.innerHTML = '';
+    
+    const filter = document.getElementById('ticket-filter').value;
+    const searchTerm = document.getElementById('ticket-search').value.toLowerCase();
+    
+    let filteredTickets = supportTickets;
+    
+    // Apply filter
+    if (filter !== 'all') {
+      filteredTickets = filteredTickets.filter(ticket => ticket.status === filter);
+    }
+    
+    // Apply search
+    if (searchTerm) {
+      filteredTickets = filteredTickets.filter(ticket => 
+        ticket.issue.toLowerCase().includes(searchTerm) || 
+        ticket.id.toLowerCase().includes(searchTerm) ||
+        ticket.name.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Sort by timestamp (newest first)
+    filteredTickets.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Display tickets
+    if (filteredTickets.length === 0) {
+      ticketsList.innerHTML = '<div class="alert alert-info">No tickets found matching your criteria.</div>';
+      return;
+    }
+    
+    filteredTickets.forEach(ticket => {
+      const ticketItem = document.createElement('div');
+      ticketItem.className = 'ticket-item';
+      
+      const statusClass = getStatusClass(ticket.status);
+      const priorityClass = getPriorityClass(ticket.priority);
+      
+      ticketItem.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5>${ticket.issue}</h5>
+            <p class="mb-2">Ticket #${ticket.id}</p>
+            <span class="${statusClass} me-2">${formatStatus(ticket.status)}</span>
+            <span class="${priorityClass} me-2"><span class="ticket-priority ${priorityClass}"></span> ${formatPriority(ticket.priority)}</span>
+            <span class="department-tag">${formatDepartment(ticket.department)}</span>
+          </div>
+          <div class="text-end">
+            <small class="text-muted d-block">${formatDate(ticket.timestamp)}</small>
+            <button class="btn btn-sm btn-outline-primary mt-2" onclick="viewTicketDetails('${ticket.id}')">
+              <i class="fas fa-eye me-1"></i> View
+            </button>
+          </div>
+        </div>
+      `;
+      
+      ticketsList.appendChild(ticketItem);
+    });
+  }
+
+  function formatDepartment(department) {
+    const deptMap = {
+      'technical': 'Technical Support',
+      'appliance-support': 'Appliance Support',
+      'software-support': 'Software Support',
+      'furniture-support': 'Furniture Support',
+      'billing': 'Billing Department'
+    };
+    return deptMap[department] || department;
+  }
+
+  function viewTicketDetails(ticketId) {
+    const ticket = supportTickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+    
+    // In a real app, this would open a detailed view modal
+    alert(`Ticket Details:\n\nID: ${ticket.id}\nStatus: ${formatStatus(ticket.status)}\nPriority: ${formatPriority(ticket.priority)}\nDepartment: ${formatDepartment(ticket.department)}\n\nIssue: ${ticket.issue}\n\nCustomer: ${ticket.name} (${ticket.email}, ${ticket.phone})`);
+  }
+
+  // Sentiment analysis and issue classification
+  function analyzeSentiment() {
+    const text = document.getElementById('message').value;
+    const bar = document.getElementById('sentiment-bar');
+    const issueCategory = document.getElementById('issue-category');
+    
+    if (!text.trim()) {
+      bar.style.width = '0%';
+      bar.style.backgroundColor = '#ddd';
+      issueCategory.innerHTML = '';
+      return;
+    }
+    
+    // Calculate sentiment score (0-100)
+    const positiveWords = ['good', 'great', 'excellent', 'happy', 'satisfied', 'thanks', 'thank you', 'awesome', 'working', 'fixed'];
+    const negativeWords = ['bad', 'poor', 'terrible', 'angry', 'unhappy', 'frustrated', 'disappointed', 'broken', 'not working', 'issue', 'problem'];
+    
+    let score = 50; // Neutral baseline
+    const words = text.toLowerCase().split(/\s+/);
+    
+    words.forEach(word => {
+      if (positiveWords.includes(word)) score += 5;
+      if (negativeWords.includes(word)) score -= 5;
+    });
+    
+    score = Math.max(0, Math.min(100, score)); // Clamp between 0-100
+    
+    // Update sentiment bar
+    bar.style.width = `${score}%`;
+    bar.style.backgroundColor = score > 60 ? '#4CAF50' : score < 40 ? '#F44336' : '#FFC107';
+    
+    // Predict issue category
+    const predictedCategory = predictIssueCategory(text);
+    issueCategory.innerHTML = `
+      <div class="alert alert-info p-2 mb-0">
+        <i class="fas fa-info-circle me-2"></i>
+        Predicted category: <strong>${formatCategory(predictedCategory)}</strong>
+      </div>
+    `;
+  }
+
+  function predictIssueCategory(text) {
+    // Simple keyword-based classification (in a real app, this would use ML/NLP)
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('not working') || lowerText.includes('broken') || lowerText.includes('not turn on')) {
+      return 'hardware-issue';
+    } else if (lowerText.includes('error') || lowerText.includes('bug') || lowerText.includes('crash')) {
+      return 'software-bug';
+    } else if (lowerText.includes('slow') || lowerText.includes('lag') || lowerText.includes('performance')) {
+      return 'performance-issue';
+    } else if (lowerText.includes('bill') || lowerText.includes('payment') || lowerText.includes('charge')) {
+      return 'billing-issue';
+    } else if (lowerText.includes('how to') || lowerText.includes('question') || lowerText.includes('help')) {
+      return 'how-to-question';
+    } else {
+      return 'general-issue';
+    }
+  }
+
+  function formatCategory(category) {
+    const categoryMap = {
+      'hardware-issue': 'Hardware Issue',
+      'software-bug': 'Software Bug',
+      'performance-issue': 'Performance Issue',
+      'billing-issue': 'Billing Issue',
+      'how-to-question': 'How-to Question',
+      'general-issue': 'General Issue'
+    };
+    return categoryMap[category] || category;
+  }
+
+  // Chat functionality
+  function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    // Add user message to chat
+    addChatMessage(message, 'user');
+    input.value = '';
+    
+    // Show typing indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = `
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    `;
+    document.getElementById('chat-container').appendChild(typingIndicator);
+    document.getElementById('chat-container').scrollTop = document.getElementById('chat-container').scrollHeight;
+    
+    // Save to chat history
+    chatHistory.push({ role: 'user', content: message });
+    
+    // Generate AI response
+    setTimeout(() => {
+      // Remove typing indicator
+      typingIndicator.remove();
+      
+      // Generate response
+      const response = generateAIResponse(message);
+      addChatMessage(response, 'bot');
+      chatHistory.push({ role: 'assistant', content: response });
+      
+      // Special responses for certain queries
+      if (message.toLowerCase().includes('toll free') || message.toLowerCase().includes('contact number')) {
+        setTimeout(() => {
+          addChatMessage(`Our toll-free customer care number is: <strong>${SUPPORT_PHONE_DISPLAY}</strong> (available 24/7)`, 'bot');
+        }, 500);
+      }
+      if (message.toLowerCase().includes('product') || message.toLowerCase().includes('item')) {
+        setTimeout(() => {
+          addChatMessage("For product-related questions, please provide the model number and description of your issue for faster assistance.", 'bot');
+        }, 500);
+      }
+      if (message.toLowerCase().includes('ticket') || message.toLowerCase().includes('status')) {
+        setTimeout(() => {
+          addChatMessage("You can check the status of your support tickets in the 'My Tickets' tab.", 'bot');
+        }, 500);
+      }
+    }, 1000 + Math.random() * 1000);
+  }
+
+  function generateAIResponse(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    if (lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
+      return "Hello! I'm Basile, your AI support agent. How can I help you today?";
+    } else if (lowerMsg.includes('product') || lowerMsg.includes('item')) {
+      return "I can help with product information. Could you please specify the product category and model number if available?";
+    } else if (lowerMsg.includes('toll free') || lowerMsg.includes('contact number')) {
+      return `Our toll-free customer care number is: <strong>${SUPPORT_PHONE_DISPLAY}</strong> (available 24/7)`;
+    } else if (lowerMsg.includes('agent') || lowerMsg.includes('human')) {
+      return "I can connect you with a human agent. Would you like me to transfer you now?";
+    } else if (lowerMsg.includes('thank')) {
+      return "You're welcome! Is there anything else I can assist you with today?";
+    } else if (lowerMsg.includes('hours') || lowerMsg.includes('time')) {
+      return "Our support team is available 24/7. You can reach us anytime via phone, chat, or email.";
+    } else if (lowerMsg.includes('ticket') || lowerMsg.includes('status')) {
+      return "You can check the status of your support tickets in the 'My Tickets' tab above.";
+    } else {
+      const responses = [
+        "I understand. Let me check that for you.",
+        "Thanks for sharing that information. I'll look into it.",
+        "I can help with that. Could you provide more details?",
+        "Our team can assist with this. Would you like me to connect you with the right department?",
+        "I've noted your request. Let me find the best solution for you.",
+        "For faster assistance, could you provide more details about your issue?"
+      ];
+      return responses[Math.floor(Math.random() * responses.length)];
+    }
+  }
+
+  function addChatMessage(text, sender) {
+    const chatContainer = document.getElementById('chat-container');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `${sender}-message message`;
+    messageDiv.innerHTML = text; // Use innerHTML to render any HTML tags
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  // Image upload handling
+  function handleImageUpload() {
+    const fileInput = document.getElementById('product-images');
+    const previewContainer = document.getElementById('image-preview');
+    previewContainer.innerHTML = '';
+    
+    if (fileInput.files.length > 0) {
+      Array.from(fileInput.files).forEach(file => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'file-preview-item';
+          previewItem.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <button class="remove-file" onclick="this.parentElement.remove()">&times;</button>
+          `;
+          previewContainer.appendChild(previewItem);
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  // Voice recording functionality
+  async function toggleRecording() {
+    const recordButton = document.getElementById('record-button');
+    
+    if (!isRecording) {
+      try {
+        audioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = event => {
+          audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          handleAudioBlob(audioBlob);
+          stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        recordButton.innerHTML = '<i class="fas fa-stop"></i> Stop';
+        recordButton.classList.remove('btn-outline-secondary');
+        recordButton.classList.add('btn-danger');
+        
+        // Start voice visualization
+        startVoiceVisualization();
+      } catch (error) {
+        console.error('Error accessing microphone:', error);
+        alert('Could not access microphone. Please check permissions.');
+      }
+    } else {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      isRecording = false;
+      recordButton.innerHTML = '<i class="fas fa-microphone"></i> Record';
+      recordButton.classList.remove('btn-danger');
+      recordButton.classList.add('btn-outline-secondary');
+      
+      // Stop voice visualization
+      stopVoiceVisualization();
+    }
+  }
+
+  function startVoiceVisualization() {
+    const voiceBar = document.getElementById('voice-bar');
+    voiceVisualizerInterval = setInterval(() => {
+      const randomLevel = Math.floor(Math.random() * 100);
+      voiceBar.style.width = `${randomLevel}%`;
+    }, 100);
+  }
+
+  function stopVoiceVisualization() {
+    clearInterval(voiceVisualizerInterval);
+    document.getElementById('voice-bar').style.width = '0%';
+  }
+
+  function handleAudioUpload() {
+    const fileInput = document.getElementById('voice-upload');
+    if (fileInput.files.length > 0) {
+      handleAudioBlob(fileInput.files[0]);
+    }
+  }
+
+  function handleAudioBlob(audioBlob) {
+    const previewContainer = document.getElementById('audio-preview');
+    previewContainer.innerHTML = '';
+    
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const previewItem = document.createElement('div');
+    previewItem.className = 'file-preview-item';
+    previewItem.innerHTML = `
+      <audio controls src="${audioUrl}"></audio>
+      <button class="remove-file" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    previewContainer.appendChild(previewItem);
+  }
+
+  // Form submission with email notification
+  function submitRequest() {
+    const name = document.getElementById('customer-name').value.trim();
+    const email = document.getElementById('customer-email').value.trim();
+    const phone = document.getElementById('customer-phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const category = document.getElementById('product-category').value;
+    const model = document.getElementById('product-model').value.trim();
+    const priority = document.getElementById('ticket-priority').value;
+    
+    if (!name) {
+      alert('Please enter your name');
+      return;
+    }
+    
+    if (!email) {
+      alert('Please enter your email address');
+      return;
+    } else if (!validateEmail(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    if (!message) {
+      alert('Please describe your issue');
+      return;
+    }
+    
+    if (!category) {
+      alert('Please select a product category');
+      return;
+    }
+    
+    // Store category and model for future use
+    selectedCategory = category;
+    selectedModel = model;
+    
+    // Show progress
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressText.textContent = 'Processing your request...';
+    
+    // Predict issue category and department
+    const predictedCategory = predictIssueCategory(message);
+    const sentimentScore = calculateSentimentScore(message);
+    const department = assignDepartment(category, predictedCategory);
+    
+    // Store request info
+    currentRequest = {
+      id: generateSupportId(),
+      name: name,
+      email: email,
+      phone: phone,
+      category: category,
+      model: model,
+      issue: message,
+      priority: priority,
+      status: 'new',
+      department: department,
+      predictedCategory: predictedCategory,
+      sentiment: sentimentScore,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Simulate processing steps
+    const steps = [
+      { percent: 25, text: 'Analyzing your request...' },
+      { percent: 50, text: 'Classifying issue...' },
+      { percent: 75, text: 'Creating support ticket...' },
+      { percent: 100, text: 'Routing to department...' }
+    ];
+    
+    steps.forEach((step, index) => {
+      setTimeout(() => {
+        progressBar.style.width = `${step.percent}%`;
+        progressText.textContent = step.text;
+        
+        if (index === steps.length - 1) {
+          setTimeout(() => {
+            completeRequestSubmission();
+          }, 600);
+        }
+      }, index * 1500);
+    });
+  }
+
+  function calculateSentimentScore(text) {
+    const positiveWords = ['good', 'great', 'excellent', 'happy', 'satisfied', 'thanks', 'thank you', 'awesome', 'working', 'fixed'];
+    const negativeWords = ['bad', 'poor', 'terrible', 'angry', 'unhappy', 'frustrated', 'disappointed', 'broken', 'not working', 'issue', 'problem'];
+    
+    let score = 50; // Neutral baseline
+    const words = text.toLowerCase().split(/\s+/);
+    
+    words.forEach(word => {
+      if (positiveWords.includes(word)) score += 5;
+      if (negativeWords.includes(word)) score -= 5;
+    });
+    
+    return Math.max(0, Math.min(100, score)); // Clamp between 0-100
+  }
+
+  function assignDepartment(category, predictedCategory) {
+    // Simple department assignment logic
+    if (predictedCategory === 'billing-issue') return 'billing';
+    
+    switch(category) {
+      case 'electronics':
+      case 'appliance':
+        return 'technical';
+      case 'software':
+        return 'software-support';
+      case 'furniture':
+        return 'furniture-support';
+      case 'service':
+        return 'customer-service';
+      default:
+        return 'general-support';
+    }
+  }
+
+  function completeRequestSubmission() {
+    // Hide progress
+    document.getElementById('progress-container').style.display = 'none';
+    
+    // Add to support tickets
+    supportTickets.push(currentRequest);
+    localStorage.setItem('supportTickets', JSON.stringify(supportTickets));
+    
+    // Show confirmation
+    addChatMessage(`Thank you ${currentRequest.name}. We've received your ${currentRequest.category} support request${currentRequest.model ? ' for model ' + currentRequest.model : ''}. Our team will review it shortly.`, 'bot');
+    
+    // Send immediate email notification
+    sendConfirmationEmail();
+    
+    // Clear form
+    document.getElementById('message').value = '';
+    document.getElementById('sentiment-bar').style.width = '0%';
+    document.getElementById('issue-category').innerHTML = '';
+    
+    // Update dashboard if on that tab
+    if (document.getElementById('stats-tab').classList.contains('active')) {
+      updateDashboardStats();
+    }
+  }
+
+  // Call agent function (enhanced)
+  function callAgent() {
+    const name = document.getElementById('customer-name').value.trim();
+    const email = document.getElementById('customer-email').value.trim();
+    const phone = document.getElementById('customer-phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const priority = document.getElementById('ticket-priority').value;
+    
+    if (!name) {
+      alert('Please enter your name before calling');
+      return;
+    }
+    
+    if (!email) {
+      alert('Please enter your email address before calling');
+      return;
+    }
+    
+    if (!phone) {
+      alert('Please enter your phone number before calling');
+      return;
+    }
+    
+    // Use stored category if available, otherwise get from form
+    const category = selectedCategory || document.getElementById('product-category').value;
+    const model = selectedModel || document.getElementById('product-model').value.trim();
+    
+    if (!category) {
+      alert('Please select a product category before calling');
+      return;
+    }
+    
+    // Predict issue category and department
+    const predictedCategory = predictIssueCategory(message);
+    const sentimentScore = calculateSentimentScore(message);
+    const department = assignDepartment(category, predictedCategory);
+    
+    // Store basic info even if full request not submitted
+    currentRequest = {
+      id: generateSupportId(),
+      name: name,
+      email: email,
+      phone: phone,
+      category: category,
+      model: model,
+      issue: message,
+      priority: priority,
+      status: 'in-progress',
+      department: department,
+      predictedCategory: predictedCategory,
+      sentiment: sentimentScore,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Add to support tickets
+    supportTickets.push(currentRequest);
+    localStorage.setItem('supportTickets', JSON.stringify(supportTickets));
+    
+    // Initiate phone call with Indian country code
+    window.location.href = `tel:${SUPPORT_PHONE_NUMBER}`;
+    
+    // Add to chat
+    addChatMessage(`Connecting you to a human agent regarding your ${category} issue...`, 'bot');
+    
+    // Send immediate email notification
+    sendCallConfirmationEmail();
+    
+    // Update dashboard if on that tab
+    if (document.getElementById('stats-tab').classList.contains('active')) {
+      updateDashboardStats();
+    }
+  }
+
+  // WhatsApp integration (fixed)
+  function sendWhatsApp() {
+    const name = document.getElementById('customer-name').value.trim();
+    const phone = document.getElementById('customer-phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const priority = document.getElementById('ticket-priority').value;
+    
+    if (!name) {
+      alert('Please enter your name');
+      return;
+    }
+    
+    if (!phone) {
+      alert('Please enter your phone number');
+      return;
+    }
+    
+    // Use stored category if available, otherwise get from form
+    const category = selectedCategory || document.getElementById('product-category').value;
+    const model = selectedModel || document.getElementById('product-model').value.trim();
+    
+    if (!category) {
+      alert('Please select a product category');
+      return;
+    }
+    
+    // Predict issue category and department
+    const predictedCategory = predictIssueCategory(message);
+    const sentimentScore = calculateSentimentScore(message);
+    const department = assignDepartment(category, predictedCategory);
+    
+    // Store ticket
+    currentRequest = {
+      id: generateSupportId(),
+      name: name,
+      email: document.getElementById('customer-email').value.trim(),
+      phone: phone,
+      category: category,
+      model: model,
+      issue: message,
+      priority: priority,
+      status: 'new',
+      department: department,
+      predictedCategory: predictedCategory,
+      sentiment: sentimentScore,
+      timestamp: new Date().toISOString()
+    };
+    
+    supportTickets.push(currentRequest);
+    localStorage.setItem('supportTickets', JSON.stringify(supportTickets));
+    
+    // Format message with Basile organization name
+    const whatsappMsg = `*Basile Support Request*\n\n*Customer Name:* ${name}\n*Product Category:* ${category}\n*Model:* ${model || 'Not specified'}\n*Priority:* ${formatPriority(priority)}\n*Issue:* ${message || 'Not specified'}\n\nPlease assist with this matter.`;
+    
+    // Open WhatsApp with pre-filled message (auto-send)
+    // Using the WhatsApp API URL with proper encoding
+    const whatsappUrl = `https://wa.me/${SUPPORT_WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappMsg)}`;
+    
+    // Create a temporary link to open in new tab
+    const link = document.createElement('a');
+    link.href = whatsappUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Add to chat
+    addChatMessage("I've opened WhatsApp with your details. Please check your browser for the WhatsApp chat window.", 'bot');
+    
+    // Update dashboard if on that tab
+    if (document.getElementById('stats-tab').classList.contains('active')) {
+      updateDashboardStats();
+    }
+  }
+
+  // Email sending functions (simulated with form submission)
+  function sendConfirmationEmail() {
+    const emailSubject = `Basile Support Request #${currentRequest.id} - ${currentRequest.category}${currentRequest.model ? ' (' + currentRequest.model + ')' : ''}`;
+    const emailBody = `Dear ${currentRequest.name},\n\nWe've received your support request regarding ${currentRequest.category}${currentRequest.model ? ' model ' + currentRequest.model : ''}.\n\nIssue: ${currentRequest.issue}\nPriority: ${formatPriority(currentRequest.priority)}\nStatus: New\nDepartment: ${formatDepartment(currentRequest.department)}\n\nOur team will get back to you within 24 hours.\n\nThank you,\nBasile AI Support Team\n\nSupport ID: ${currentRequest.id}`;
+    
+    // In a real app, you would use an email API here
+    console.log('Email would be sent to:', currentRequest.email);
+    console.log('Subject:', emailSubject);
+    console.log('Body:', emailBody);
+    
+    // Send to Basile's default email
+    sendEmailToBasile(currentRequest, emailSubject);
+    
+    // Show confirmation
+    addChatMessage(`A confirmation email has been sent to ${currentRequest.email}`, 'bot');
+    
+    // For demo purposes, let's show the email in an alert
+    alert(`Email sent to: ${currentRequest.email}\n\nSubject: ${emailSubject}\n\nBody:\n${emailBody}`);
+  }
+
+  function sendCallConfirmationEmail() {
+    const emailSubject = `Basile - Call Initiated - Support Request #${currentRequest.id}`;
+    const emailBody = `Dear ${currentRequest.name},\n\nThank you for contacting our support team.\n\nWe've recorded your call regarding ${currentRequest.category}.\n\nIssue: ${currentRequest.issue}\nPriority: ${formatPriority(currentRequest.priority)}\nStatus: In Progress\nDepartment: ${formatDepartment(currentRequest.department)}\n\nIf you have any additional information, please reply to this email.\n\nThank you,\nBasile AI Support Team\n\nSupport ID: ${currentRequest.id}`;
+    
+    // In a real app, you would use an email API here
+    console.log('Call confirmation email would be sent to:', currentRequest.email);
+    console.log('Subject:', emailSubject);
+    console.log('Body:', emailBody);
+    
+    // Send to Basile's default email
+    sendEmailToBasile(currentRequest, emailSubject);
+    
+    // For demo purposes, let's show the email in an alert
+    alert(`Call confirmation email sent to: ${currentRequest.email}\n\nSubject: ${emailSubject}\n\nBody:\n${emailBody}`);
+  }
+
+  function sendEmailToBasile(request, subject) {
+    const basileEmail = 'basilkings24@gmail.com';
+    const emailBody = `New support request from ${request.name} (${request.email})\n\nTicket ID: ${request.id}\nCategory: ${request.category}\nModel: ${request.model || 'Not specified'}\nIssue: ${request.issue || 'Not specified'}\n\nPriority: ${formatPriority(request.priority)}\nPredicted Category: ${formatCategory(request.predictedCategory)}\nSentiment Score: ${request.sentiment}\nAssigned Department: ${formatDepartment(request.department)}\n\nCustomer Phone: ${request.phone || 'Not provided'}\n\nTimestamp: ${new Date(request.timestamp).toLocaleString()}`;
+    
+    console.log(`Email to Basile (${basileEmail}):`);
+    console.log('Subject:', subject);
+    console.log('Body:', emailBody);
+    
+    // In a real implementation, you would use an email API or form submission here
+    // This is just for demonstration
+    alert(`Email also sent to Basile support team (${basileEmail}) with the details.`);
+  }
+
+  function generateSupportId() {
+    return 'BAS-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+  }
+
+  // Helper functions
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  function toggleChat() {
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer.style.display === 'none') {
+      chatContainer.style.display = 'block';
+    } else {
+      chatContainer.style.display = 'none';
+    }
+  }
+
+  // Handle Enter key in chat
+  document.getElementById('chat-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendChatMessage();
+    }
+  });
+
+  // Store category when selected
+  document.getElementById('product-category').addEventListener('change', function() {
+    selectedCategory = this.value;
+  });
+
+  // Store model when entered
+  document.getElementById('product-model').addEventListener('input', function() {
+    selectedModel = this.value.trim();
+  });
+
+  // Filter tickets when search or filter changes
+  document.getElementById('ticket-search').addEventListener('input', loadTickets);
+  document.getElementById('ticket-filter').addEventListener('change', loadTickets);
+</script>
+</body>
+</html>
